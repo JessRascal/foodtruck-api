@@ -45,7 +45,7 @@ export default ({ config, db }) => {
     // Get all food trucks based on food type
     // '/v1/foodtruck/foodtype/:foodtype'
     api.get('/foodtype/:foodtype', (req, res) => {
-        FoodTruck.find({foodtype: req.params.foodtype}, (err, foodtrucks) => {
+        FoodTruck.find({ foodtype: req.params.foodtype }, (err, foodtrucks) => {
             if (err) {
                 res.send(err);
             }
@@ -60,24 +60,35 @@ export default ({ config, db }) => {
                 res.send(err);
             }
             foodtruck.name = req.body.name;
+            foodtruck.foodtype = req.body.foodtype;
+            foodtruck.avgcost = req.body.avgcost;
+            foodtruck.geometry.coordinates = req.body.geometry.coordinates;
             foodtruck.save(err => {
                 if (err) {
                     res.send(err);
                 }
-                res.json({ message: 'FoodTruck info updated'});
+                res.json({ message: 'FoodTruck info updated' });
             });
         });
     });
 
     // '/v1/foodtruck/:id' - Delete
     api.delete('/:id', (req, res) => {
-        FoodTruck.remove({
-            _id: req.params.id
-        }, (err, foodtruck) => {
+        Review.remove({
+            foodtruck: req.params.id
+        }, (err, reviews) => {
             if (err) {
                 res.send(err);
             }
-            res.json({ message: 'FoodTruck successfully deleted'});
+            // If reviews deleted, remove foodtruck
+            FoodTruck.remove({
+                _id: req.params.id
+            }, (err, foodtruck) => {
+                if (err) {
+                    res.send(err);
+                }
+                res.json({ message: 'FoodTruck and reviews successfully deleted' });
+            });
         });
     });
 
@@ -110,7 +121,7 @@ export default ({ config, db }) => {
     // Get all reviews for a specific food truck
     // '/v1/foodtruck/reviews/:id'
     api.get('/reviews/:id', (req, res) => {
-        Review.find({foodtruck: req.params.id}, (err, reviews) => {
+        Review.find({ foodtruck: req.params.id }, (err, reviews) => {
             if (err) {
                 res.send(err);
             }
